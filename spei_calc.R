@@ -149,23 +149,25 @@ for(i in 1:nrow(plot_dat))
 
 #write.csv(x = plot_dat, file = "Data/Spei_dat.csv")
 
-spei_12 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei12, x = month, color = continent, group = pop)) + 
+spei_12 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei12, x = month, color = continent, group = pop), 
+                  alpha = 0.5) + 
   geom_line() +  
-  geom_line(data = subset(plot_dat, pop == "HUFZ"), mapping = aes(size = 1, color = pop), color = "red")  + 
-  geom_line(data = subset(plot_dat, pop == "BL"), mapping = aes(size = 1, color = pop), color = "green")  + theme_bw() + 
+  geom_line(data = subset(plot_dat, pop == "HUFZ"), mapping = aes(size = 1, color = pop), color = "blue")  + 
+  geom_line(data = subset(plot_dat, pop == "BL"), mapping = aes(size = 1, color = pop), color = "orange")  + theme_bw() + 
   facet_wrap(~year) + scale_x_continuous(breaks = 1:12, labels = c(month.abb[1:12])) + 
   theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank()) + ylab("SPEI (scale = 12 month)") +
-  scale_size_continuous(guide = "none")
+  scale_size_continuous(guide = "none") + ggthemes::scale_color_colorblind()
 
 
-spei_6 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei06, x = month, color = continent, group = pop)) + 
+spei_6 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei06, x = month, color = continent, group = pop),
+                 alpha = 0.5) + 
   geom_line() +  
-  geom_line(data = subset(plot_dat, pop == "HUFZ"), mapping = aes(size = 1, color = pop), color = "red")  + 
-  geom_line(data = subset(plot_dat, pop == "BL"), mapping = aes(size = 1, color = pop), color = "green") +
+  geom_line(data = subset(plot_dat, pop == "HUFZ"), mapping = aes(size = 1, color = pop), color = "blue")  + 
+  geom_line(data = subset(plot_dat, pop == "BL"), mapping = aes(size = 1, color = pop), color = "orange") +
   theme_bw() + 
   facet_wrap(~year) + scale_x_continuous(breaks = 1:12, labels = c(month.abb[1:12])) + 
   theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank()) + ylab("SPEI (scale = 6 month)") +
-  scale_size_continuous(guide = "none")
+  scale_size_continuous(guide = "none") + ggthemes::scale_color_colorblind()
 
 spei_all <- ggpubr::ggarrange(spei_6, spei_12, common.legend = T, nrow = 2)
 
