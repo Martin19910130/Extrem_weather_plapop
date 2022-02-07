@@ -61,6 +61,10 @@ dat_all <- subset(dat_all, !is.na(Longitude))
 ## order the data after site, year and month (month is automatically ordered)
 dat_all <- dat_all[order(dat_all$pop, dat_all$year),]
 
+## include box plot to check temperature distribution
+boxplot(dat_all$tas)
+
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##            SPEI calculations
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,9 +153,8 @@ for(i in 1:nrow(plot_dat))
 
 #write.csv(x = plot_dat, file = "Data/Spei_dat.csv")
 
-spei_12 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei12, x = month, color = continent, group = pop), 
-                  alpha = 0.5) + 
-  geom_line() +  
+spei_12 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei12, x = month, color = continent, group = pop)) + 
+  geom_line(alpha = 0.5) +  
   geom_line(data = subset(plot_dat, pop == "HUFZ"), mapping = aes(size = 1, color = pop), color = "blue")  + 
   geom_line(data = subset(plot_dat, pop == "BL"), mapping = aes(size = 1, color = pop), color = "orange")  + theme_bw() + 
   facet_wrap(~year) + scale_x_continuous(breaks = 1:12, labels = c(month.abb[1:12])) + 
@@ -159,9 +162,8 @@ spei_12 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei12,
   scale_size_continuous(guide = "none") + ggthemes::scale_color_colorblind()
 
 
-spei_6 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei06, x = month, color = continent, group = pop),
-                 alpha = 0.5) + 
-  geom_line() +  
+spei_6 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei06, x = month, color = continent, group = pop)) + 
+  geom_line(alpha = 0.5) +  
   geom_line(data = subset(plot_dat, pop == "HUFZ"), mapping = aes(size = 1, color = pop), color = "blue")  + 
   geom_line(data = subset(plot_dat, pop == "BL"), mapping = aes(size = 1, color = pop), color = "orange") +
   theme_bw() + 
@@ -173,4 +175,4 @@ spei_all <- ggpubr::ggarrange(spei_6, spei_12, common.legend = T, nrow = 2)
 
 ggsave("Spei_all.jpeg", 
        device = "jpeg")
-
+getwd()
