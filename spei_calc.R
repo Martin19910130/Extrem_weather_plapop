@@ -8,13 +8,14 @@ gc()
 library(dplyr)
 library(SPEI)
 
-setwd("C://Users/ma22buky/Documents/01_PhD/plantpopnet/Aldo_project/")
+
+#setwd("C://Users/ma22buky/Documents/01_PhD/plantpopnet/Aldo_project/")
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##              reorder data
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### read data from sanne
-dat <- read.csv("Data/CHELSA_clim_all_populations.csv")
+dat <- read.csv("https://raw.githubusercontent.com/Martin19910130/Extrem_weather_plapop/main/CHELSA_clim_all_populations.csv")
 
 ## quick and dirty subset each for each climate variable
 dat_pr <- subset(dat, variable == "pr" )[,c("Latitude", "Longitude", "pop", 
@@ -54,8 +55,8 @@ dat_all[,c("tasmin", "tasmax", "tas", "pr")] <- dat_all[,c("tasmin", "tasmax", "
 dat_all <- subset(dat_all, !is.na(Longitude))
 
 ## write the data frame
-write.csv(dat_all, 
-          "C://Users/ma22buky/Documents/01_PhD/plantpopnet/Aldo_project/Data/climate_reorganized.csv")
+#write.csv(dat_all, 
+ #         "C://Users/ma22buky/Documents/01_PhD/plantpopnet/Aldo_project/Data/climate_reorganized.csv")
 
 ## order the data after site, year and month (month is automatically ordered)
 dat_all <- dat_all[order(dat_all$pop, dat_all$year),]
@@ -135,7 +136,7 @@ lat_lon[which(lat_lon$Longitude == -121.073780), 3] <- "North America"
 lat_lon[which(lat_lon$Longitude == 21.959783), 3] <- "Europe"
 lat_lon[which(lat_lon$Longitude == -7.617440), 3] <- "Europe"
 
-for(i in 1:nrow(rofl))
+for(i in 1:nrow(plot_dat))
   for(j in 1:nrow(lat_lon))
   {
     if(lat_lon[j, "Latitude"] == plot_dat[i, "Latitude"] &
@@ -146,7 +147,7 @@ for(i in 1:nrow(rofl))
     }
   }
 
-write.csv(x = plot_dat, file = "Data/Spei_dat.csv")
+#write.csv(x = plot_dat, file = "Data/Spei_dat.csv")
 
 spei_12 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei12, x = month, color = continent, group = pop)) + 
   geom_line() +  
