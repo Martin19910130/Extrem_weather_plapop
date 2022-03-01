@@ -17,6 +17,8 @@ library(SPEI)
 ### read data from sanne
 dat <- read.csv("https://raw.githubusercontent.com/Martin19910130/Extrem_weather_plapop/main/CHELSA_clim_all_populations.csv")
 
+dat <- read.csv('CHELSA_clim_all_populations_22.2.2022.csv')
+
 ## quick and dirty subset each for each climate variable
 dat_pr <- subset(dat, variable == "pr" )[,c("Latitude", "Longitude", "pop", 
                                             "year", "month", "value")] %>% 
@@ -153,14 +155,51 @@ for(i in 1:nrow(plot_dat))
 
 #write.csv(x = plot_dat, file = "Data/Spei_dat.csv")
 
-spei_12 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei12, x = month, color = continent, group = pop)) + 
-  geom_line(alpha = 0.5) +  
-  geom_line(data = subset(plot_dat, pop == "HUFZ"), mapping = aes(size = 1, color = pop), color = "blue")  + 
-  geom_line(data = subset(plot_dat, pop == "BL"), mapping = aes(size = 1, color = pop), color = "orange")  + theme_bw() + 
-  facet_wrap(~year) + scale_x_continuous(breaks = 1:12, labels = c(month.abb[1:12])) + 
-  theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank()) + ylab("SPEI (scale = 12 month)") +
-  scale_size_continuous(guide = "none") + ggthemes::scale_color_colorblind()
+plot_dat <- plot_dat %>% 
+              mutate( continent = as.factor(continent) )
 
+
+# sp ei_12 <- 
+  ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), 
+                  aes(y = spei12, x = month, 
+                      color = continent, 
+                      group = pop)
+                  ) + 
+  geom_line(alpha = 1, size = 1) +
+  geom_line(data = subset(plot_dat, pop == "HUFZ"), 
+            mapping = aes(color = pop), 
+            size = 3, 
+            color = "blue")  + 
+  geom_line(data = subset(plot_dat, pop == "BL"), 
+            mapping = aes(color = pop), 
+            size = 3, 
+            color = "orange")  + 
+  geom_line(data = subset(plot_dat, pop == "JE"), 
+            mapping = aes(color = pop), 
+            size = 3, 
+            color = "red")  + 
+  geom_line(data = subset(plot_dat, pop == "RUSC"), 
+            mapping = aes(color = pop), 
+            size = 3, 
+            color = "yellow") +
+  theme_bw() + 
+  facet_wrap(~year) + 
+  scale_x_continuous(breaks = 1:12, labels = c(month.abb[1:12])) + 
+  theme(axis.text.x = element_text(angle = 90), 
+        axis.title.x = element_blank()) + 
+  ylab("SPEI (scale = 12 month)") +
+  scale_size_continuous(guide = "none") + 
+  ggthemes::scale_color_colorblind() 
+
+p1 = ggplot(subset(plot_dat, year == 2018), 
+            aes(y = spei12, x = month, 
+                color = continent, 
+                group = pop) ) + 
+  geom_line(alpha = 1, size = 1) +
+  scale_x_continuous(breaks = 1:12, labels = c(month.abb[1:12])) 
+
+ggplotly( p1 )
+  
 
 spei_6 <- ggplot(subset(plot_dat, !(pop %in% c("HUFZ", "BL"))), aes(y = spei06, x = month, color = continent, group = pop)) + 
   geom_line(alpha = 0.5) +  
@@ -176,3 +215,14 @@ spei_all <- ggpubr::ggarrange(spei_6, spei_12, common.legend = T, nrow = 2)
 ggsave("Spei_all.jpeg", 
        device = "jpeg")
 getwd()
+
+
+# store site-specific SPEI -----------------------------------------------------
+dat_spei %>% 
+  # subset( pop %in% c('LK1','TX','HUFZ','BL','TO') ) %>% 
+  # mutate( pop = replace(pop, pop == 'TX', 'RUSC') ) %>% 
+  # subset( month %in% c(4,6) ) %>% 
+  # subset( !(month %in% 4 & pop %in% c('LK1','HUFZ','BL','TO')) ) %>% 
+  # subset( !(month %in% 6 & pop %in% 'RUSC') ) %>% 
+  # rename( site = pop ) %>% 
+  write.csv( 'spei_clim_analyses.csv', row.names=F)

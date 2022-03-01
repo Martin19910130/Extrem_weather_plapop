@@ -2,31 +2,26 @@ library(tidyverse)
 library(ggthemes)
 source('plot_binned_prop.R')
 
-# RUSC ---------------------------------------------------------------
+# TO ---------------------------------------------------------------
 
-dir     <- 'C:/Users/ac22qawo/Dropbox/PlantPopNet_extreme_weather/RUSC/'
-rusc_v  <- list.files( dir ) %>% grep('.csv',.,value=T)
-rusc_yr <- regmatches(rusc_v, 
-                      gregexpr("[[:digit:]]{4}", 
-                      rusc_v) ) %>% 
+dir   <- 'C:/Users/ac22qawo/Dropbox/PlantPopNet_extreme_weather/TO/'
+to_v  <- list.files( dir ) %>% grep('.csv',.,value=T)
+to_yr <- regmatches(to_v, 
+                    gregexpr("[[:digit:]]{4}", 
+                    to_v) ) %>% 
              unlist %>% 
              as.numeric
 
-# format the RUSC data
-format_rusc <- function( x, yr, time_step ){
+# format the TO data
+format_to <- function( x, yr, time_step ){
   
   print( yr )
   
-  read_mat <-  paste0(dir, x) %>% 
-                read.csv %>% 
-                t
+  read_mat <-  paste0(dir, x) %>% read.csv 
   
-  name_v   <- read_mat[1,]
+  name_v   <- names(read_mat)
   
   demo_df  <- read_mat %>% 
-                as.data.frame %>% 
-                setNames( name_v ) %>% 
-                .[-1,] %>% 
                 # change names
                 rename( size           = no_leaves,
                         leaf_length    = leaf_length,
@@ -35,11 +30,11 @@ format_rusc <- function( x, yr, time_step ){
                         fl_infl_height = inflor_length,
                         SL             = number_seedlings ) %>% 
                 mutate( survival       = replace(survival, 
-                                                 survival %in% c('nf', 
-                                                                 'cnf',
-                                                                 'bf'),
-                                                 NA) ) %>% 
-                
+                                                 survival == 'dead',
+                                                 0) ) %>% 
+                mutate( survival       = replace(survival, 
+                                                 survival == 'survived',
+                                                 1) ) %>% 
                 subset( !grepl("/", plant_id ) ) %>% 
                 mutate( plant_id = as.numeric( plant_id) )
   
@@ -101,51 +96,43 @@ format_rusc <- function( x, yr, time_step ){
 }
     
 # two separate transition files
-rusc_t0 <- Map( format_rusc, rusc_v, rusc_yr, 't0' ) %>% bind_rows
-rusc_t1 <- Map( format_rusc, rusc_v, rusc_yr, 't1' ) %>% bind_rows
-full_df <- full_join( rusc_t0,
-                      rusc_t1 ) %>% 
-            # log the sizes
-            mutate( log_size_t0 = log(size_t0),
-                    log_size_t1 = log(size_t1) ) %>% 
-            mutate( transition  = paste(year-1, '-', year),
-                    site        = 'RUSC' ) %>% 
-            mutate( duration   = (year - min(year)) - 1 )
+to_t0   <- Map( format_to, to_v, to_yr, 't0' ) %>% bind_rows %>% select(-X)
+to_t1   <- Map( format_to, to_v, to_yr, 't1' ) %>% bind_rows %>% select(-X)
+full_df <- full_join( to_t0,
+                      to_t1 ) %>% 
+             # log the sizes
+             mutate( log_size_t0 = log(size_t0),
+                     log_size_t1 = log(size_t1) ) %>% 
+             # remove individuals that area already dead
+             mutate( surv_t0_t1  = survival_t0 + survival_t1 ) %>% 
+             subset( !(surv_t0_t1 %in% 0) ) %>% 
+             mutate( transition = paste(year-1, '-', year),
+                     site       = 'TO' ) %>% 
+             mutate( duration   = (year - min(year)) - 1 )
 
-write.csv(full_df, 'results/clean_data/demo_RUSC.csv', row.names=F)
-            
+write.csv(full_df, 'results/clean_data/demo_TO.csv', row.names=F)
+
 # growth
-full_join( rusc_t0,
-           rusc_t1 ) %>% 
-  subset( !(year %in% c(2015,2021)) ) %>%
-  mutate( year = as.factor(year),
-          log_size_t0 = log(size_t0),
-          log_size_t1 = log(size_t1) ) %>% 
+full_df %>% 
+  subset( !(year %in% c(2015,2019)) ) %>% 
+  mutate( year = as.factor(year) ) %>% 
   ggplot( ) +
   geom_jitter( aes(log_size_t0,
-                  log_size_t1,
-                  group = year,
-                  color = year,
-                  height = 1,
-                  width = 1) ) +
+                   log_size_t1,
+                   group = year,
+                   color = year,
+                   height = 1,
+                   width = 1) ) +
   theme_minimal() +
   scale_color_colorblind()
-  
 
-# Survival
-full_df <- full_join( rusc_t0, rusc_t1 ) %>% 
-             mutate( log_size_t0 = log(size_t0) ) 
-  
+# survival
 list( subset(full_df, year == 2016) %>% 
         plot_binned_prop( 10, log_size_t0, survival_t1 ) %>% mutate( year = 2016),
       subset(full_df, year == 2017) %>% 
         plot_binned_prop( 10, log_size_t0, survival_t1 ) %>% mutate( year = 2017),
       subset(full_df, year == 2018) %>% 
-        plot_binned_prop( 10, log_size_t0, survival_t1 ) %>% mutate( year = 2018),
-      subset(full_df, year == 2019) %>% 
-        plot_binned_prop( 10, log_size_t0, survival_t1 ) %>% mutate( year = 2019),
-      subset(full_df, year == 2020) %>% 
-        plot_binned_prop( 10, log_size_t0, survival_t1 ) %>% mutate( year = 2020) 
+        plot_binned_prop( 10, log_size_t0, survival_t1 ) %>% mutate( year = 2018)
       ) %>% 
   bind_rows %>% 
   mutate( year = as.factor(year) ) %>% 
@@ -163,7 +150,7 @@ n_t0 <- full_df %>%
                   x_coord, y_coord, size_t0 ) %>% 
           subset( !is.na(size_t0) ) %>% 
           count( year ) %>% 
-          rename( n_t0 = n )
+          rename( n_t0 = n ) 
 
 n_t1 <- n_t0 %>% 
           mutate( year = year - 1 ) %>% 
@@ -172,12 +159,11 @@ n_t1 <- n_t0 %>%
 n_df <- full_join( n_t0, n_t1 ) %>% 
           mutate( gr = n_t1 / n_t0 ) %>% 
           arrange( year ) %>% 
-          subset( !(year == 2022) ) %>% 
-          mutate( transition  = paste(year-1, '-', year),
-                  site        = 'RUSC' ) %>% 
+          mutate( transition = paste(year-1, '-', year),
+                  site       = 'TO' ) %>% 
           mutate( duration   = (year - min(year)) - 1 )
   
-write.csv(n_df, 'results/clean_data/n_RUSC.csv', row.names=F)
+write.csv(n_df, 'results/clean_data/n_TO.csv', row.names=F)
 
 # growth rate plot
 ggplot(n_df) +
@@ -188,5 +174,3 @@ ggplot(n_df) +
 ggplot(n_df) +
   geom_line( aes(year,n_t1) ) +
   theme_minimal()
-
-  
