@@ -42,7 +42,7 @@ df_binned_prop <- function(df, n_bins, siz_var, rsp_var)
 }
 
 ## load data
-dat <- read.csv("https://raw.githubusercontent.com/Martin19910130/Extrem_weather_plapop/main/demo_dat.csv")
+dat <- read.csv("https://raw.githubusercontent.com/Martin19910130/Extrem_weather_plapop/main/Data/demo_dat.csv")
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##    survival model
